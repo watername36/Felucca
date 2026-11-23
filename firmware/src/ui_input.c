@@ -1124,7 +1124,38 @@ static void edit_param(uint32_t slot, int32_t steps)
                 TSEL->p[P_E3] = (int16_t)v;
             }
         }
-        motion_capture(TSEL, macro_id[page2][slot], *vp);
+        /* Capture every engine parameter changed by this macro, not just its primary knob.
+         * Otherwise automation would restore only part of the linked sound change. */
+        if (!page2) {
+            if (slot == 0u) {          /* TONE: FREQ, COLR, TRK */
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+                motion_capture(TSEL, P_E1, TSEL->p[P_E1]);
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+            } else if (slot == 1u) {   /* BODY: RES, DENS */
+                motion_capture(TSEL, P_E3, TSEL->p[P_E3]);
+                motion_capture(TSEL, P_E5, TSEL->p[P_E5]);
+            } else if (slot == 2u) {   /* CHAOS: CRSH, DRFT */
+                motion_capture(TSEL, P_E7, TSEL->p[P_E7]);
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+            } else {                   /* MOTION: DRFT, TRK */
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+            }
+        } else {
+            if (slot == 0u) {          /* GRAIN: DENS, CRSH */
+                motion_capture(TSEL, P_E5, TSEL->p[P_E5]);
+                motion_capture(TSEL, P_E7, TSEL->p[P_E7]);
+            } else if (slot == 1u) {   /* COLOUR: COLR, FREQ */
+                motion_capture(TSEL, P_E1, TSEL->p[P_E1]);
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+            } else if (slot == 2u) {   /* TRACK: TRK, DRFT */
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+            } else {                   /* FILTER: FREQ, RES */
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+                motion_capture(TSEL, P_E3, TSEL->p[P_E3]);
+            }
+        }
         ml_knob(TSEL, macro_id[page2][slot]);
         ui.force = 1;
         return;
