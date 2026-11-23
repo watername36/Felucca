@@ -1103,12 +1103,8 @@ static void edit_param(uint32_t slot, int32_t steps)
             TSEL->p[P_E1] = (int16_t)(127 - v);
             TSEL->p[P_E4] = (int16_t)v;
         } else if (slot == 1u) {                  /* BODY: resonance and impulse density / register length */
-            if (mode < 2u)
-                TSEL->p[P_E5] = (int16_t)v;
-            else
-                TSEL->p[P_E2] = (int16_t)((TSEL->p[P_E2] + v) / 2);
-        } else if (slot == 2u) {                  /* CHAOS: crush / clock, density / sequence length */
             TSEL->p[P_E5] = (int16_t)v;
+        } else if (slot == 2u) {                  /* CHAOS: crush / clock plus a secondary drift */
             TSEL->p[P_E6] = (int16_t)(v / 2);
         } else {                                  /* MOTION: drift and inverse key tracking */
             TSEL->p[P_E4] = (int16_t)(127 - v);
