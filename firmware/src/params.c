@@ -473,7 +473,7 @@ static const page_t PAGES[] = {
     {"CHORD", FAM_SCL, SC_TRACK, GR_CHORD, {P_CHRD, P_VOIC, 0xFF, 0xFF}},   /* SCL again: the chord keys (chord.c) */
     {"EDIT 1", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E0, P_E1, P_E2, P_E3}},
     {"EDIT 2", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E4, P_E5, P_E6, P_E7}},
-    {"NOISE LIVE", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E5, P_E7, P_E6, P_E3}}, /* live noise controls: DENS, CRSH/CLK, DRFT, RES */
+    {"NOISE LIVE", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E2, P_E3, P_E7, P_E6}}, /* TONE BODY CHAOS MOTION: macro controls */
     {"FILTER", FAM_EDIT, SC_TRACK, GR_NONE, {P_FTYPE, P_E4, P_E5, P_E7}},   /* ANALOG only (1.5, #104): TYPE CUT RES KTR */
     {"LANES", FAM_EDIT, SC_TRACK, GR_NONE, {P_LN0, P_LN1, P_LN2, P_LN3}},   /* DRUM only: the lane levels */
     {"LANES 2", FAM_EDIT, SC_TRACK, GR_NONE, {P_LN4, P_LN5, P_LN6, P_LN7}},
@@ -514,12 +514,23 @@ static const page_t PAGES[] = {
 #define NPAGES (sizeof(PAGES) / sizeof(PAGES[0]))
 static uint8_t mod_ui_slot;      /* the MOD page: the matrix slot (0..3) KNOB 2..4 edit */
 
+static const param_desc_t NOISE_MACRO[4] = {
+    {"TONE", F_PCT, 0, 127, 80, 0, 0},
+    {"BODY", F_PCT, 0, 127, 30, 0, 0},
+    {"CHAOS", F_PCT, 0, 127, 0, 0, 0},
+    {"MOTION", F_PCT, 0, 127, 0, 0, 0},
+};
+
 static const param_desc_t *page_desc(const page_t *pg, uint32_t slot, int16_t **valp)
 {
     uint32_t id = pg->id[slot];
     if (id == 0xFFu) {
         *valp = 0;
         return 0;
+    }
+    if (str_eq(pg->title, "NOISE LIVE")) {
+        *valp = &TSEL->p[id];
+        return &NOISE_MACRO[slot & 3u];
     }
     if (pg->scope == SC_STEP || pg->scope == SC_TRK) {
         *valp = 0;
