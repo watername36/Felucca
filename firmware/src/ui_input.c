@@ -1093,7 +1093,6 @@ static void edit_param(uint32_t slot, int32_t steps)
     }
     if (str_eq(pg->title, "NOISE LIVE")) {       /* four performance macros; each couples real engine params */
         static const uint8_t macro_id[4] = {P_E2, P_E3, P_E7, P_E6};
-        uint32_t mode = (uint32_t)TSEL->p[P_E0] & 3u;
         d = page_desc(pg, slot, &vp);
         if (!d || !vp || slot > 3u)
             return;
