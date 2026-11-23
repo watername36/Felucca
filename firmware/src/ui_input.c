@@ -1091,6 +1091,33 @@ static void edit_param(uint32_t slot, int32_t steps)
         mod_ui_slot = (uint8_t)clamp((int32_t)mod_ui_slot + (steps > 0 ? 1 : -1), 0, 3);
         return;
     }
+    if (str_eq(pg->title, "NOISE LIVE")) {       /* four performance macros; each couples real engine params */
+        static const uint8_t macro_id[4] = {P_E2, P_E3, P_E7, P_E6};
+        uint32_t mode = (uint32_t)TSEL->p[P_E0] & 3u;
+        d = page_desc(pg, slot, &vp);
+        if (!d || !vp || slot > 3u)
+            return;
+        v = param_turn(d, *vp, accel(EN_K1 + slot, steps, d->max - d->min));
+        *vp = (int16_t)v;
+        if (slot == 0u) {                         /* TONE: cutoff plus source tilt and key tracking */
+            TSEL->p[P_E1] = (int16_t)(127 - v);
+            TSEL->p[P_E4] = (int16_t)v;
+        } else if (slot == 1u) {                  /* BODY: resonance and impulse density / register length */
+            if (mode < 2u)
+                TSEL->p[P_E5] = (int16_t)v;
+            else
+                TSEL->p[P_E2] = (int16_t)((TSEL->p[P_E2] + v) / 2);
+        } else if (slot == 2u) {                  /* CHAOS: crush / clock, density / sequence length */
+            TSEL->p[P_E5] = (int16_t)v;
+            TSEL->p[P_E6] = (int16_t)(v / 2);
+        } else {                                  /* MOTION: drift and inverse key tracking */
+            TSEL->p[P_E4] = (int16_t)(127 - v);
+        }
+        motion_capture(TSEL, macro_id[slot], *vp);
+        ml_knob(TSEL, macro_id[slot]);
+        ui.force = 1;
+        return;
+    }
     d = page_desc(pg, slot, &vp);
     if (!d || !vp || d->max == d->min)
         return;
