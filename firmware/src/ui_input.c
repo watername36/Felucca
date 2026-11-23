@@ -1091,6 +1091,75 @@ static void edit_param(uint32_t slot, int32_t steps)
         mod_ui_slot = (uint8_t)clamp((int32_t)mod_ui_slot + (steps > 0 ? 1 : -1), 0, 3);
         return;
     }
+    if (str_eq(pg->title, "NOISE LIVE") || str_eq(pg->title, "NOISE LIVE 2")) {
+        static const uint8_t macro_id[2][4] = {
+            {P_E2, P_E3, P_E7, P_E6},
+            {P_E5, P_E1, P_E4, P_E2}
+        };
+        uint32_t page2 = str_eq(pg->title, "NOISE LIVE 2");
+        d = page_desc(pg, slot, &vp);
+        if (!d || !vp || slot > 3u)
+            return;
+        v = param_turn(d, *vp, accel(EN_K1 + slot, steps, d->max - d->min));
+        *vp = (int16_t)v;
+        if (!page2) {
+            if (slot == 0u) {                     /* TONE: cutoff, source tilt and tracking */
+                TSEL->p[P_E1] = (int16_t)(127 - v);
+                TSEL->p[P_E4] = (int16_t)v;
+            } else if (slot == 1u) {              /* BODY: resonance plus density / register length */
+                TSEL->p[P_E5] = (int16_t)v;
+            } else if (slot == 2u) {              /* CHAOS: crush / clock plus secondary drift */
+                TSEL->p[P_E6] = (int16_t)(v / 2);
+            } else {                              /* MOTION: drift and inverse key tracking */
+                TSEL->p[P_E4] = (int16_t)(127 - v);
+            }
+        } else {
+            if (slot == 0u) {                     /* GRAIN: density / register length plus crush / clock */
+                TSEL->p[P_E7] = (int16_t)(v / 2);
+            } else if (slot == 1u) {              /* COLOUR: tilt plus inverse cutoff */
+                TSEL->p[P_E2] = (int16_t)(127 - v);
+            } else if (slot == 2u) {              /* TRACK: key tracking plus drift */
+                TSEL->p[P_E6] = (int16_t)(v / 2);
+            } else {                              /* FILTER: cutoff and resonance */
+                TSEL->p[P_E3] = (int16_t)v;
+            }
+        }
+        /* Capture every engine parameter changed by this macro, not just its primary knob.
+         * Otherwise automation would restore only part of the linked sound change. */
+        if (!page2) {
+            if (slot == 0u) {          /* TONE: FREQ, COLR, TRK */
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+                motion_capture(TSEL, P_E1, TSEL->p[P_E1]);
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+            } else if (slot == 1u) {   /* BODY: RES, DENS */
+                motion_capture(TSEL, P_E3, TSEL->p[P_E3]);
+                motion_capture(TSEL, P_E5, TSEL->p[P_E5]);
+            } else if (slot == 2u) {   /* CHAOS: CRSH, DRFT */
+                motion_capture(TSEL, P_E7, TSEL->p[P_E7]);
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+            } else {                   /* MOTION: DRFT, TRK */
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+            }
+        } else {
+            if (slot == 0u) {          /* GRAIN: DENS, CRSH */
+                motion_capture(TSEL, P_E5, TSEL->p[P_E5]);
+                motion_capture(TSEL, P_E7, TSEL->p[P_E7]);
+            } else if (slot == 1u) {   /* COLOUR: COLR, FREQ */
+                motion_capture(TSEL, P_E1, TSEL->p[P_E1]);
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+            } else if (slot == 2u) {   /* TRACK: TRK, DRFT */
+                motion_capture(TSEL, P_E4, TSEL->p[P_E4]);
+                motion_capture(TSEL, P_E6, TSEL->p[P_E6]);
+            } else {                   /* FILTER: FREQ, RES */
+                motion_capture(TSEL, P_E2, TSEL->p[P_E2]);
+                motion_capture(TSEL, P_E3, TSEL->p[P_E3]);
+            }
+        }
+        ml_knob(TSEL, macro_id[page2][slot]);
+        ui.force = 1;
+        return;
+    }
     d = page_desc(pg, slot, &vp);
     if (!d || !vp || d->max == d->min)
         return;
