@@ -429,7 +429,7 @@ static uint32_t layer_btn(void);
  * track's (its patch's operators, ui_fm6op.c) */
 static int page_visible(uint32_t i)
 {
-    if (str_eq(PAGES[i].title, "NOISE LIVE"))     /* the live macro page belongs to NOISE only */
+    if (str_eq(PAGES[i].title, "NOISE LIVE") || str_eq(PAGES[i].title, "NOISE LIVE 2")) /* noise performance pages */
         return TSEL->eng_req % NENGINES == ENGI_NOISE;
     if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] >= P_LN0 && PAGES[i].id[0] <= P_LN7)
         return TSEL->eng_req % NENGINES == ENGI_DRUM;
